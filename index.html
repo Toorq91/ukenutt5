@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Annoying Volume Control</title>
+<style>
+  body {
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: sans-serif;
+    flex-direction: column;
+  }
+
+  #volume-container {
+    width: 600px;
+    height: 60px;
+    background: #333;
+    border: 2px solid #555;
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  #volume-bar {
+    height: 100%;
+    width: 0%;
+    background: limegreen;
+    transition: width 0.2s;
+  }
+
+  #volume-text {
+    font-size: 44px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Audio element -->
+<audio id="background-audio" loop>
+  <source src="https://www.myinstants.com/media/sounds/epic-sax-guy.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+<div id="volume-container">
+  <div id="volume-bar"></div>
+</div>
+<div id="volume-text">Volume: 0%</div>
+
+<script>
+let volume = 0;
+let lastAngle = null;
+let centerX = window.innerWidth / 2;
+let centerY = window.innerHeight / 2;
+const audio = document.getElementById('background-audio');
+
+// Play the audio when the page loads
+window.addEventListener('load', () => {
+  audio.volume = 0; // start muted
+  audio.play().catch(err => {
+    console.log('Autoplay blocked, click anywhere to start the audio.');
+  });
+});
+
+// Update the volume display and audio volume
+function updateVolume() {
+  volume = Math.max(0, Math.min(100, volume));
+  document.getElementById('volume-bar').style.width = volume + '%';
+  document.getElementById('volume-text').innerText = 'Volume: ' + Math.floor(volume) + '%';
+
+  const maxAudioVolume = 0.1; // Max volume = 10%
+  audio.volume = (volume / 100) * maxAudioVolume;
+}
+
+// Decrease volume by 20% every second
+setInterval(() => {
+  volume -= 20;
+  updateVolume();
+}, 1000);
+
+// Mouse move event to detect clockwise motion
+document.addEventListener('mousemove', (e) => {
+  const dx = e.clientX - centerX;
+  const dy = e.clientY - centerY;
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+  if (lastAngle !== null) {
+    let delta = angle - lastAngle;
+
+    // Handle wrapping from 180 to -180 degrees
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+
+    if (delta > 0) {
+      // Clockwise movement increases volume
+      volume += delta * 0.05; // Adjust sensitivity here
+      updateVolume();
+    }
+  }
+
+  lastAngle = angle;
+});
+
+// Update center coordinates on resize
+window.addEventListener('resize', () => {
+  centerX = window.innerWidth / 2;
+  centerY = window.innerHeight / 2;
+});
+
+// If autoplay is blocked, start on click
+document.body.addEventListener('click', () => {
+  audio.play();
+});
+</script>
+</body>
+</html>
