@@ -80,9 +80,9 @@ function updateVolume() {
 
 // Decrease volume by 20% every second
 setInterval(() => {
-  volume -= 20;
+  volume -= 1;
   updateVolume();
-}, 1000);
+}, 50);
 
 // Mouse move event to detect clockwise motion
 document.addEventListener('mousemove', (e) => {
