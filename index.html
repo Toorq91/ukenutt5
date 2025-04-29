@@ -1,53 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Annoying Volume Control</title>
-<style>
-  body {
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;
-    background: #111;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-family: sans-serif;
-    flex-direction: column;
-    cursor: cell;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Annoying Volume Control</title>
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: sans-serif;
+      cursor: cell;
+      gap: 20px;
+    }
 
-  #volume-container {
-    width: 600px;
-    height: 60px;
-    background: #333;
-    border: 2px solid #555;
-    position: relative;
-    margin-bottom: 20px;
-  }
+    #volume-container {
+      width: 600px;
+      height: 60px;
+      background: #333;
+      border: 2px solid #555;
+      position: relative;
+    }
 
-  #volume-bar {
-    height: 100%;
-    width: 0%;
-    background: limegreen;
-    transition: width 0.2s;
-  }
+    #volume-bar {
+      height: 100%;
+      width: 0%;
+      background: limegreen;
+      transition: width 0.2s;
+    }
 
-  #volume-text {
-    font-size: 44px;
-  }
-</style>
+    #volume-text {
+      font-size: 32px;
+      margin-top: 10px;
+    }
+
+    #gif-wrapper {
+      position: relative;
+      width: 300px;
+      height: 300px; 
+      display: inline-block;
+      border: 3px solid #555;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #gif-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #gif-wrapper img#still-img {
+      opacity: 1;
+      transition: opacity 0.3s ease-in-out, filter 0.3s ease-in-out;
+      filter: grayscale(60%) brightness(70%);
+    }
+
+    #gif-wrapper img#gif-img {
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    #gif-wrapper:hover img#still-img {
+      opacity: 0;
+      filter: none;
+    }
+
+    #gif-wrapper:hover img#gif-img {
+      opacity: 1;
+    }
+
+  </style>
 </head>
 <body>
 
-<!-- Audio element -->
+<!-- Background audio -->
 <audio id="background-audio" loop>
-  <source src="https://www.myinstants.com/media/sounds/epic-sax-guy.mp3" type="audio/mpeg">
+  <source src="https://www.myinstants.com/media/sounds/epic-sax-guy.mp3" type="audio/mpeg" />
   Your browser does not support the audio element.
 </audio>
 
+<!-- GIF Wrapper with still image and animated GIF -->
+<div id="gif-wrapper">
+  <img id="still-img" src="https://slm-assets.secondlife.com/assets/3972985/lightbox/epic%20sax%20guy.jpg?1311777802" alt="Still Sax Guy">
+  <img id="gif-img" src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdzI2a3piNDJ0NzgyYmVoejMydnV0dnB1bWY1aHF0NmV0Z28zenBtNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7vAwVEdJS5cKxediyK/giphy.gif" alt="Epic Sax Guy GIF">
+</div>
+
+<!-- Volume bar and text -->
 <div id="volume-container">
   <div id="volume-bar"></div>
 </div>
@@ -55,68 +104,51 @@
 
 <script>
 let volume = 0;
-let lastAngle = null;
-let centerX = window.innerWidth / 2;
-let centerY = window.innerHeight / 2;
 const audio = document.getElementById('background-audio');
+const gifWrapper = document.getElementById('gif-wrapper');
+let hoveringGif = false;
 
-// Play the audio when the page loads
+// Autoplay attempt
 window.addEventListener('load', () => {
-  audio.volume = 0; // start muted
-  audio.play().catch(err => {
-    console.log('Autoplay blocked, click anywhere to start the audio.');
+  audio.volume = 0;
+  audio.play().catch(() => {
+    console.log('Autoplay blocked. Click to start audio.');
   });
 });
 
-// Update the volume display and audio volume
+document.body.addEventListener('click', () => {
+  audio.play();
+});
+
+// Volume updater
 function updateVolume() {
   volume = Math.max(0, Math.min(100, volume));
   document.getElementById('volume-bar').style.width = volume + '%';
   document.getElementById('volume-text').innerText = 'Volume: ' + Math.floor(volume) + '%';
 
-  const maxAudioVolume = 0.1; // Max volume = 10%
+  const maxAudioVolume = 0.1;
   audio.volume = (volume / 100) * maxAudioVolume;
 }
 
-// Decrease volume by 20% every second
+// Volume animation loop
 setInterval(() => {
-  volume -= 1;
+  if (hoveringGif) {
+    volume += 1;
+  } else {
+    volume -= 1;
+  }
   updateVolume();
 }, 50);
 
-// Mouse move event to detect clockwise motion
-document.addEventListener('mousemove', (e) => {
-  const dx = e.clientX - centerX;
-  const dy = e.clientY - centerY;
-  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-  if (lastAngle !== null) {
-    let delta = angle - lastAngle;
-
-    // Handle wrapping from 180 to -180 degrees
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-
-    if (delta > 0) {
-      // Clockwise movement increases volume
-      volume += delta * 0.05; // Adjust sensitivity here
-      updateVolume();
-    }
-  }
-
-  lastAngle = angle;
+// Hover state
+gifWrapper.addEventListener('mouseenter', () => {
+  hoveringGif = true;
 });
 
-// Update center coordinates on resize
-window.addEventListener('resize', () => {
-  centerX = window.innerWidth / 2;
-  centerY = window.innerHeight / 2;
-});
-
-// If autoplay is blocked, start on click
-document.body.addEventListener('click', () => {
-  audio.play();
+gifWrapper.addEventListener('mouseleave', () => {
+  hoveringGif = false;
 });
 </script>
+
 </body>
 </html>
