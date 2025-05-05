@@ -120,14 +120,15 @@
       top: 100%;
       left: 0;
       height: 130px;
-      width: 10px;
-      background: linear-gradient(0deg, red, yellow);
+      width: 100%;
       border-radius: 10px;
       transform: scaleY(-1);
-      opacity: 0.8;
-      mask-image: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
-      -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+      opacity: 0.5;
+      background: inherit;
+      mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+      -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
     }
+
 
     /* Only animate if container has .active class */
     #disco-bars.active .line {
